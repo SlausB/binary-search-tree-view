@@ -1,10 +1,13 @@
-import am4chart_tree from './am4chart_tree'
-import g6_force_tree from './g6_force_tree'
+import my_layout from './my_layout'
 import Streams from '@slaus/simple_streams/lib/space'
 
 console.log('Hello, binary-search-tree-view!')
 
 const streams = new Streams
+
+window.addEventListener('resize', function(event) {
+    streams.s( 'resize' ).next()
+}, true)
 
 document.addEventListener('keydown', event => {
     if (event.code === 'Space') {
@@ -12,5 +15,4 @@ document.addEventListener('keydown', event => {
     }
 })
 
-//am4chart_tree( streams )
-g6_force_tree()
+my_layout( streams )

@@ -2,7 +2,7 @@ import G6 from '@antv/g6';
 
 export default function g6_force_tree() {
 
-    const container = document.getElementById('container');
+    const container = document.getElementById('chartdiv');
     const width = container.scrollWidth;
     const height = container.scrollHeight || 500;
     const graph = new G6.Graph({
