@@ -8,5 +8,7 @@
         "jsx": "react",
         "allowJs": true,
         "moduleResolution": "node",
+        "checkJs": false /* Report errors in .js files. */,
+        "strict": false /* Enable all strict type-checking options. */,
     }
 }

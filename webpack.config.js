@@ -36,10 +36,6 @@ module.exports = (env, argv) => ({
     },
     resolve: {
         extensions: [ '.tsx', '.ts', '.js', '.es6' ],
-        modules: [
-            '.',
-            'src',
-        ]
     },
     output: {
         filename: 'app.js',
@@ -53,6 +49,7 @@ module.exports = (env, argv) => ({
             template: './src/index.html.ejs',
             hash: true,
             debug: argv.mode == 'development',
+            favicon : 'favicon.ico',
         }),
         new webpack.DefinePlugin({
             NODE_ENV: JSON.stringify( argv.mode ),

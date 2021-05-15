@@ -8,8 +8,13 @@
     "watch": "webpack --mode=development --watch",
     "build": "cross-env NODE_ENV=production webpack --mode=production"
   },
+  "browser": {
+    "[module-name]": false
+  },
   "dependencies": {
+    "@types/d3": "6.3.0",
     "@types/lodash": "4.14.168",
+    "d3": "6.7.0",
     "html-webpack-partials-plugin": "0.8.0",
     "html-webpack-plugin": "5.3.1",
     "ts-loader": "9.1.0",
