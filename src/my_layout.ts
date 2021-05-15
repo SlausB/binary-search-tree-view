@@ -7,20 +7,26 @@ import BST, { Node } from './bst'
 const NODE_RADIUS = 22
 const EDGE_LENGTH = 90
 
-
-type Graphics = {
+class Data {
+    color : string = randomColor() as string
+    pos : Point = new Point(0,0)
+    
     view : svg.G
     edge : svg.G
-    pos : Point
 }
 
 export default function( streams : Streams ) {
-    const bst = new BST< Graphics >()
+    const bst = new BST< Data >()
 
     const canvas = svg.SVG().addTo('#chartdiv').size('100%', '100%')
     const container = canvas.group()
     const edges = container.group()
     const nodes = container.group()
+    function init_graphics( data : Data, key : number ) {
+        data.view = nodes.group()
+        data.edge = edges.group()
+        data.view.click( () => remove( key ) )
+    }
 
     streams.s( 'resize' ).on(()=>{
         const bbox = document.getElementById('chartdiv').getBoundingClientRect()
@@ -33,43 +39,52 @@ export default function( streams : Streams ) {
     })
     streams.s( 'resize' ).next()
 
+    function remove( key : number ) {
+        bst.remove_by_key( key )
+
+        edges.clear()
+        nodes.clear()
+        bst.for_each( node => {
+            init_graphics( node.value, node.key )
+            insert_graphics(
+                bst,
+                node.key,
+            )
+        })
+    }
+
     streams.s( 'spacebar' ).on( () => {
         const key = random_int( -100, 100 )
-        const graphics = {
-            view : nodes.group(),
-            edge : edges.group(),
-            pos : new Point(0,0),
-        }
+        const data = new Data
+        init_graphics( data, key )
         bst.insert(
             key,
-            graphics,
+            data,
         )
         insert_graphics(
             bst,
             key,
         )
-        graphics.view.click( () => bst.remove_by_key( key ) )
     })
 }
 
 function insert_graphics(
-    bst : BST< Graphics >,
+    bst : BST< Data >,
     key : number,
 ) {
-    const color = randomColor() as string
-
     const pos = new Point( 0, 0 )
     let direction = Math.PI / 2
     let range = Math.PI
-    let parent : Node< Graphics > | undefined = undefined
+    let parent : Node< Data > | undefined = undefined
     let node = bst.root
     for ( let depth = 0; node; ++ depth ) {
+        const edge_length = EDGE_LENGTH * Math.pow( 0.97, depth )
+        pos.translate( direction, edge_length )
+
         if ( key == node.key ) {
             break
         }
 
-        const edge_length = EDGE_LENGTH * Math.pow( 0.97, depth )
-        pos.translate( direction, edge_length )
         range = range / 2 + Math.PI * ( 1 - Math.pow( 0.97, depth ) )
 
         parent = node
@@ -87,7 +102,7 @@ function insert_graphics(
 
     node.value.view
         .circle( NODE_RADIUS * 2 )
-        .fill( color )
+        .fill( node.value.color )
         .attr( 'shape-rendering', 'geometricPrecision' )
         .attr( 'anchor', 'middle' )
         //.center( 0, 0 )

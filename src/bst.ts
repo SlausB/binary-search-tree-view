@@ -5,6 +5,7 @@ export default class BST< Value > {
     insert( key : number, value : Value ) {
         this.root = insert( this.root, key, value )
     }
+
     remove( node : Node< Value > ) {
         if ( node.left && node.right ) {
             const successor = find_min( node.right )
@@ -27,6 +28,7 @@ export default class BST< Value > {
         if ( node )
             this.remove( node )
     }
+
     find( key : number ) : Node< Value > | undefined {
         let result = this.root
         while ( result ) {
@@ -40,6 +42,10 @@ export default class BST< Value > {
             }
         }
         return undefined
+    }
+
+    for_each( handler : (n:Node<Value>)=>any ) {
+        for_each( handler, this.root )
     }
 }
 
@@ -104,4 +110,15 @@ function replace_node_in_parent< Value >( node : Node< Value >, new_child : Node
     }
 
     remove_node_in_parent( node )
+}
+
+function for_each<Value>(
+    handler : (n:Node<Value>)=>any,
+    root : Node<Value> | undefined,
+) {
+    if ( ! root )
+        return
+    handler( root )
+    for_each( handler, root.left )
+    for_each( handler, root.right )
 }
