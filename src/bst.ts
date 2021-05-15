@@ -14,13 +14,13 @@ export default class BST< Value > {
             this.remove( successor )
         }
         else if ( node.left ) {
-            replace_node_in_parent( node, node.left )
+            replace_node_in_parent( this, node, node.left )
         }
         else if ( node.right ) {
-            replace_node_in_parent( node, node.right )
+            replace_node_in_parent( this, node, node.right )
         }
         else {
-            remove_node_in_parent( node )
+            replace_node_in_parent( this, node, undefined )
         }
     }
     remove_by_key( key : number ) {
@@ -93,23 +93,25 @@ function find_min< Value >( node : Node< Value > ) : Node< Value > {
         return find_min( node.left )
     return node
 }
-function remove_node_in_parent< Value >( node : Node< Value > ) {
-    if ( node.parent ) {
-        if ( node.parent.left == node )
-            node.parent.left = undefined
-        else
-            node.parent.right = undefined
-    }
-}
-function replace_node_in_parent< Value >( node : Node< Value >, new_child : Node< Value > ) {
+function replace_node_in_parent< Value >(
+    bst : BST< Value >,
+    node : Node< Value >,
+    new_child : Node< Value > | undefined,
+) {
     if ( node.parent ) {
         if ( node.parent.left == node )
             node.parent.left = new_child
         else
             node.parent.right = new_child
+        
+        if ( new_child )
+            new_child.parent = node.parent
     }
-
-    remove_node_in_parent( node )
+    else if ( node == bst.root ) {
+        bst.root = new_child
+        if ( new_child )
+            new_child.parent = undefined
+    }
 }
 
 function for_each<Value>(
