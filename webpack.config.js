@@ -25,8 +25,11 @@ module.exports = (env, argv) => ({
         rules: [
             {
                 test: /\.(tsx|ts)$/,
-                use: 'ts-loader',
-                exclude: /node_modules/,
+                use: {
+                    loader : 'ts-loader',
+                    //exclude: /node_modules/,
+                    options: { allowTsInNodeModules: true },
+                },
                 include:[
                     path.join(__dirname, '.'),
                     path.join(__dirname, 'src'),

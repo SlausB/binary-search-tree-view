@@ -3,8 +3,11 @@ import * as am4core from "@amcharts/amcharts4/core";
 import * as am4charts from "@amcharts/amcharts4/charts";
 import * as am4plugins_forceDirected from "@amcharts/amcharts4/plugins/forceDirected"; 
 import am4themes_animated from "@amcharts/amcharts4/themes/animated";
+import Streams from '@slaus/simple_streams/lib/space'
+import { random_int } from './utils'
+import { ForceDirectedTreeDataItem } from "@amcharts/amcharts4/plugins/forceDirected";
 
-export default function am4chart_tree() {
+export default function am4chart_tree( streams : Streams ) {
     /* Chart code */
     // Themes begin
     am4core.useTheme(am4themes_animated);
@@ -116,5 +119,19 @@ export default function am4chart_tree() {
         if (event.target.dataItem.parentLink) {
             event.target.dataItem.parentLink.isHover = false;
         }
+    })
+
+    streams.s( 'spacebar' ).on( () => {
+        console.log( 'Adding random node ...' )
+        console.log( 'Data:', chart.data )
+        /*chart.addData({
+            name : 'node',
+            value : random_int( -100, 100 ),
+        })*/
+        chart.data[0].children.push({
+            name : 'node',
+            value : random_int( -100, 100 ),
+        })
+        chart.invalidateData()
     })
 }
