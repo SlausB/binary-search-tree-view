@@ -2,81 +2,11 @@ import * as svg from '@svgdotjs/svg.js'
 import Streams from '@slaus/simple_streams/lib/space'
 import { random_int } from './utils'
 const randomColor = require('randomcolor')
+import BST, { Node } from './bst'
 
 const NODE_RADIUS = 22
 const EDGE_LENGTH = 90
 
-
-class Node< Value > {
-    key : number
-    value : Value
-
-    left  : Node<Value> | undefined
-    right : Node<Value> | undefined
-    parent : Node<Value> | undefined
-
-    constructor( key : number, value : Value ) {
-        this.key = key
-        this.value = value
-    }
-}
-
-function insert< Value >( parent : Node< Value >, key : number, value : Value ) : Node< Value > {
-    if ( ! parent ) {
-        return new Node( key, value )
-    }
-    //value already present in the tree:
-    if ( key == parent.key ) {
-        return parent
-    }
-    else if ( key < parent.key ) {
-        parent.left = insert( parent.left, key, value )
-    }
-    else {
-        parent.right = insert( parent.right, key, value )
-    }
-    return parent
-}
-
-function remove< Value >( node : Node< Value > ) {
-    if ( node.left && node.right ) {
-        const successor = find_min( node.right )
-        node.key = successor.key
-        remove( successor )
-    }
-    else if ( node.left ) {
-        replace_node_in_parent( node, node.left )
-    }
-    else if ( node.right ) {
-        replace_node_in_parent( node, node.right )
-    }
-    else {
-        remove_node_in_parent( node )
-    }
-}
-function find_min< Value >( node : Node< Value > ) : Node< Value > {
-    if ( node.left )
-        return find_min( node.left )
-    return node
-}
-function remove_node_in_parent< Value >( node : Node< Value > ) {
-    if ( node.parent ) {
-        if ( node.parent.left == node )
-            node.parent.left = undefined
-        else
-            node.parent.right = undefined
-    }
-}
-function replace_node_in_parent< Value >( node : Node< Value >, new_child : Node< Value > ) {
-    if ( node.parent ) {
-        if ( node.parent.left == node )
-            node.parent.left = new_child
-        else
-            node.parent.right = new_child
-    }
-
-    remove_node_in_parent( node )
-}
 
 type Graphics = {
     value : number
@@ -84,12 +14,12 @@ type Graphics = {
 }
 
 export default function( streams : Streams ) {
-    let root : Node< Graphics > | undefined = undefined
+    const bst = new BST< Graphics >()
 
     const canvas = svg.SVG().addTo('#chartdiv').size('100%', '100%')
 
     function on_click( node : Node< Graphics > ) {
-        remove( node )
+        bst.remove( node )
         streams.s( 'draw' ).next()
     }
 
@@ -108,7 +38,7 @@ export default function( streams : Streams ) {
                 bbox.width / 2,
                 bbox.height / 2,
             ),
-            root,
+            bst.root,
         )
     })
     streams.s( 'resize' ).to( 'draw' )
@@ -117,8 +47,7 @@ export default function( streams : Streams ) {
     streams.s( 'spacebar' )
         .do( () => {
             const key = random_int( -100, 100 )
-            root = insert(
-                root,
+            bst.insert(
                 key,
                 {
                     value : key,
