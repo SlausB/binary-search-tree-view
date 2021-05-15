@@ -1,3 +1,5 @@
+import * as d3 from "d3"
+
 export default function () {
 
     var treeData =
@@ -29,6 +31,7 @@ export default function () {
         .append("g")
         .attr("transform", "translate("
             + margin.left + "," + margin.top + ")");
+    console.log( 'svg:', svg )
 
     var i = 0,
         duration = 750,

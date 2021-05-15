@@ -12,6 +12,7 @@
     "[module-name]": false
   },
   "dependencies": {
+    "@amcharts/amcharts4": "4.10.18",
     "@types/d3": "6.3.0",
     "@types/lodash": "4.14.168",
     "d3": "6.7.0",
