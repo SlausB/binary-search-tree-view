@@ -1,0 +1,30 @@
+{
+  "name": "binary-search-tree-view",
+  "version": "1.0.0",
+  "description": "Job appliance test assignment implementation: render binary search tree with insertion animations",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "webpack --mode=development --watch",
+    "build": "cross-env NODE_ENV=production webpack --mode=production"
+  },
+  "dependencies": {
+    "@types/lodash": "4.14.168",
+    "html-webpack-partials-plugin": "0.8.0",
+    "html-webpack-plugin": "5.3.1",
+    "ts-loader": "9.1.0",
+    "typescript": "4.2.4",
+    "webpack": "5.35.0",
+    "webpack-cli": "4.6.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SlausB/binary-search-tree-view.git"
+  },
+  "author": "Slaus @ SlavMFM@gmail.com",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SlausB/binary-search-tree-view/issues"
+  },
+  "homepage": "https://github.com/SlausB/binary-search-tree-view#readme"
+}
