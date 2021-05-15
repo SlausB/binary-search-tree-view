@@ -22,6 +22,25 @@ export default class BST< Value > {
             remove_node_in_parent( node )
         }
     }
+    remove_by_key( key : number ) {
+        const node = this.find( key )
+        if ( node )
+            this.remove( node )
+    }
+    find( key : number ) : Node< Value > | undefined {
+        let result = this.root
+        while ( result ) {
+            if ( result.key == key )
+                return result
+            if ( key < result.key ) {
+                result = result.left
+            }
+            else {
+                result = result.right
+            }
+        }
+        return undefined
+    }
 }
 
 export class Node< Value > {
@@ -38,7 +57,11 @@ export class Node< Value > {
     }
 }
 
-function insert< Value >( parent : Node< Value >, key : number, value : Value ) : Node< Value > {
+function insert< Value >(
+    parent : Node< Value >,
+    key : number,
+    value : Value,
+) : Node< Value > {
     if ( ! parent ) {
         return new Node( key, value )
     }
@@ -49,9 +72,11 @@ function insert< Value >( parent : Node< Value >, key : number, value : Value ) 
     }
     else if ( key < parent.key ) {
         parent.left = insert( parent.left, key, value )
+        parent.left.parent = parent
     }
     else {
         parent.right = insert( parent.right, key, value )
+        parent.right.parent = parent
     }
     return parent
 }
