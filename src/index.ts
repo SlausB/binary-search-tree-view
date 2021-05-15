@@ -1,5 +1,5 @@
-import d3_tree from './d3_tree'
+import am4chart_tree from './am4chart_tree'
 
 console.log('Hello, binary-search-tree-view!')
 
-d3_tree()
+am4chart_tree()
