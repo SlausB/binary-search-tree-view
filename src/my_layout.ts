@@ -39,6 +39,29 @@ class Canvas {
     init_graphics( data : Data ) {
         data.view = this.nodes.group()
         data.edge = this.edges.group()
+
+        data.view
+            .circle( NODE_RADIUS * 2 )
+            .fill( data.color )
+            .attr( 'shape-rendering', 'geometricPrecision' )
+            .attr( 'anchor', 'middle' )
+            //.center( 0, 0 )
+        data.view
+            .text( data.key.toString() )
+            .fill( '#00291d' )
+            .attr( 'anchor', 'middle' )
+            .attr( 'font-size', NODE_RADIUS )
+            .attr({
+                'stroke' : '#0049bf',
+                'stroke-width' : '1px',
+                'stroke-opacity' : '1',
+                x : NODE_RADIUS,
+                'text-anchor' : "middle",
+            })
+            //.center( NODE_RADIUS, NODE_RADIUS )
+    }
+    add_view( data : Data ) {
+        this.init_graphics( data )
         data.view.click( () => this.remove( data.key ) )
     }
 }
@@ -67,7 +90,7 @@ export default function( streams : Streams ) {
         canvas.edges.clear()
         canvas.nodes.clear()
         bst.for_each( node => {
-            canvas.init_graphics( node.value )
+            canvas.add_view( node.value )
             insert_graphics(
                 bst,
                 node.key,
@@ -77,9 +100,10 @@ export default function( streams : Streams ) {
 
     streams.s( 'spacebar' ).on( () => {
         const key = random_int( -100, 100 )
-        insert( canvas, bst, key )
-        
-        //const ins = new Insertion( bst.root, new Data( key ) )
+        const data = new Data( key )
+        canvas.init_graphics( data )
+        const ins = new Insertion( bst.root, data )
+        insertions.push( ins )
     })
 
     //nodes currently trying to find their place to get inserted (animating) - not part of target tree yet:
@@ -87,7 +111,7 @@ export default function( streams : Streams ) {
     streams.s( 'tick' ).on( seconds => {
         for ( let i = 0; i < insertions.length; ++ i ) {
             const ins = insertions[ i ]
-            step( ins, bst, seconds )
+            step( ins, bst, canvas, seconds )
             if ( ! ins.data ) {
                 insertions.splice( i, 1 )
                 -- i
@@ -98,7 +122,7 @@ export default function( streams : Streams ) {
 
 function insert( canvas : Canvas, bst : BST<Data>, key : number ) {
     const data = new Data( key )
-    canvas.init_graphics( data )
+    canvas.add_view( data )
     
     bst.insert(
         key,
@@ -113,17 +137,18 @@ function insert( canvas : Canvas, bst : BST<Data>, key : number ) {
 class Insertion {
     /** Nearest node this insertion is currently animating to.*/
     target_key : number
-    passed_key : number
+
     data : Data
+
     constructor( root : Node<Data> | undefined, data : Data ) {
         this.target_key = root ? root.key : data.key
-        this.passed_key = data.key
         this.data = data
     }
 }
 function step(
     insertion : Insertion,
     bst : BST< Data >,
+    canvas : Canvas,
     seconds : number,
 ) {
     //locating the position of the node this insertion is currently moving to:
@@ -131,10 +156,23 @@ function step(
     let node = bst.root
     while ( node ) {
         caret.move()
+        //target_key node could be removed during the insertion animation:
         if ( insertion.data.key == node.key ) {
+            insertion.target_key = node.key
             break
         }
-        else if ( insertion.data.key < node.key ) {
+        if ( insertion.target_key == node.key ) {
+            break
+        }
+
+        //tree was modified during the animation so that current animation will never reach it's proper destination:
+        if ( Math.sign( insertion.target_key - node.key ) != Math.sign( insertion.data.key - node.key ) ) {
+            insertion.target_key = bst.root.key
+            node = bst.root
+            break
+        }
+
+        if ( insertion.target_key < node.key ) {
             caret.turn_left()
             node = node.left
         }
@@ -145,13 +183,20 @@ function step(
     }
 
     if ( move( insertion.data, caret, seconds ) ) {
-        if ( node ) {
-
+        //inserting node reached the current [intermediate] target: switching to next child:
+        if ( node && node.key != insertion.data.key ) {
+            if ( insertion.data.key < node.key ) {
+                insertion.target_key = node.left ? node.left.key : insertion.data.key
+            }
+            else {
+                insertion.target_key = node.right ? node.right.key : insertion.data.key
+            }
         }
+        //inserting node reached the position where it belongs: inserting:
         else {
             insertion.data.view.clear()
+            insert( canvas, bst, insertion.data.key )
             delete insertion.data
-            bst.insert
         }
     }
 }
@@ -159,22 +204,25 @@ const SPEED = 60
 function move( data : Data, target : Caret, seconds : number ) : boolean {
     const pos = new Point( data.pos.x, data.pos.y )
     const movement = SPEED * seconds
+
     let x_reached = false
     let y_reached = false
+
     if ( target.pos.x > pos.x ) {
         pos.x += movement
         if ( pos.x > target.pos.x ) {
             pos.x = target.pos.x
-            x_reached = true
         }
     }
     if ( target.pos.x < pos.x ) {
         pos.x -= movement
         if ( pos.x < target.pos.x ) {
             pos.x = target.pos.x
-            x_reached = true
         }
     }
+    if ( pos.x == target.pos.x )
+        x_reached = true
+
     if ( target.pos.y > pos.y ) {
         pos.y += movement
         if ( pos.y > target.pos.y ) {
@@ -189,6 +237,9 @@ function move( data : Data, target : Caret, seconds : number ) : boolean {
             y_reached = true
         }
     }
+    if ( pos.y == target.pos.y )
+        y_reached = true
+    
     data.move( pos )
     return x_reached && y_reached
 }
@@ -220,25 +271,6 @@ function insert_graphics(
     }
     node.value.pos = caret.pos
 
-    node.value.view
-        .circle( NODE_RADIUS * 2 )
-        .fill( node.value.color )
-        .attr( 'shape-rendering', 'geometricPrecision' )
-        .attr( 'anchor', 'middle' )
-        //.center( 0, 0 )
-    node.value.view
-        .text( key.toString() )
-        .fill( '#00291d' )
-        .attr( 'anchor', 'middle' )
-        .attr( 'font-size', NODE_RADIUS )
-        .attr({
-            'stroke' : '#0049bf',
-            'stroke-width' : '1px',
-            'stroke-opacity' : '1',
-            x : NODE_RADIUS,
-            'text-anchor' : "middle",
-        })
-        //.center( NODE_RADIUS, NODE_RADIUS )
     node.value.view.center( caret.pos.x, caret.pos.y )
 
     if ( parent ) {
@@ -293,8 +325,8 @@ class Caret {
     }
 }
 
+let lastTime = Date.now()
 function animate( streams : Streams ) {
-    let lastTime = Date.now()
     requestAnimationFrame( () => animate( streams ) )
     const now = Date.now()
     const dt = now - lastTime
